@@ -8,6 +8,8 @@ import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
+import static com.dokifusky.screenshotoverrider.AppInfo.APP_PKG_NAME;
+import static com.dokifusky.screenshotoverrider.AppInfo.PREFS_FILE;
 import static com.dokifusky.screenshotoverrider.DebugUtil.dbgPrintf;
 
 public class AllowScreenshotModule implements IXposedHookLoadPackage
@@ -17,15 +19,13 @@ public class AllowScreenshotModule implements IXposedHookLoadPackage
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable
     {
-        XSharedPreferences pref =
-                new XSharedPreferences("com.dokifusky.screenshotoverrider",
-                        "enabledApps");
+        XSharedPreferences pref = new XSharedPreferences(APP_PKG_NAME, PREFS_FILE);
         pref.makeWorldReadable();
         pref.reload();
 
         String packageName = lpparam.packageName;
 
-        if (pref.contains(packageName))
+        if (pref.getBoolean(packageName, false))
         {
             dbgPrintf("%s Detected, hooking...", packageName);
             addHooksToApp(lpparam);
