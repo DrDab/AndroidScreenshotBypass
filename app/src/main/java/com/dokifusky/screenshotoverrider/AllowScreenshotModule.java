@@ -1,8 +1,5 @@
 package com.dokifusky.screenshotoverrider;
 
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedHelpers;
@@ -15,6 +12,7 @@ import static com.dokifusky.screenshotoverrider.DebugUtil.dbgPrintf;
 public class AllowScreenshotModule implements IXposedHookLoadPackage
 {
     public static final String WINDOW_CLASSNAME = "android.view.Window";
+    public static final String SURFACEVIEW_CLASS_NAME = "android.view.SurfaceView";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable
@@ -35,12 +33,13 @@ public class AllowScreenshotModule implements IXposedHookLoadPackage
 
     private void addHooksToApp(XC_LoadPackage.LoadPackageParam lpparam)
     {
-        AllowScreenshotHook hook = new AllowScreenshotHook();
-
-        XposedHelpers.findAndHookMethod(WINDOW_CLASSNAME, lpparam.classLoader, "addFlags",
-                int.class, hook);
+        FlagDisablerHook flagHook = new FlagDisablerHook();
+        SurfaceViewHook surfaceHook = new SurfaceViewHook();
 
         XposedHelpers.findAndHookMethod(WINDOW_CLASSNAME, lpparam.classLoader, "setFlags",
-                int.class, int.class, hook);
+                int.class, int.class, flagHook);
+
+        XposedHelpers.findAndHookMethod(SURFACEVIEW_CLASS_NAME, lpparam.classLoader, "setSecure",
+                boolean.class, surfaceHook);
     }
 }
